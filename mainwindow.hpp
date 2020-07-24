@@ -16,7 +16,7 @@ class OrderType
 public:
     OrderType(QList<Utils::SeriesEnum> linesInOrder, Utils::SeriesEnum lowerBound, Utils::SeriesEnum upperBound) :
         _linesInOrder(linesInOrder), _lowerBound(lowerBound), _upperBound(upperBound) {}
-    QList<Utils::SeriesEnum>* linesInOrder() { return &_linesInOrder; }
+    QList<Utils::SeriesEnum> linesInOrder() { return _linesInOrder; }
     Utils::SeriesEnum lowerBound() { return _lowerBound; }
     Utils::SeriesEnum upperBound() { return _upperBound; }
 
@@ -29,13 +29,13 @@ private:
 class Position
 {
 public:
-    Position(QString type, QString volume, Utils::SidesEnum side) : _type(type), _volume(volume), _side(side) {}
-    QString type() { return _type; }
+    Position(Utils::OrderTypesEnum type, QString volume, Utils::SidesEnum side) : _type(type), _volume(volume), _side(side) {}
+    Utils::OrderTypesEnum type() { return _type; }
     QString volume() { return _volume; }
     Utils::SidesEnum side() { return _side; }
 
 private:
-    QString _type;
+    Utils::OrderTypesEnum _type;
     QString _volume;
     Utils::SidesEnum _side;
 };
@@ -49,10 +49,10 @@ public:
     ~MainWindow();
 
     void getApiKeys();
-    void handleOrderType(const QString text);
     void quickShortSetup();
     void quickLongSetup();
-    Utils::SidesEnum currentPossibleOrder();
+    Utils::OrderTypesEnum currentPossibleType();
+    std::pair<Utils::OrderTypesEnum,Utils::SidesEnum> currentPossibleOrder();
     void handlePlaceOrder();
     void handleModifyOrder(QString name);
     void modifyOrder();
@@ -74,7 +74,7 @@ private:
     ChartHandler *_chartHandler;
     WsHandler _wsHandler;
     ApiHandler _binance;
-    std::map<QString,OrderType> _orderTypesList;
+    std::map<Utils::OrderTypesEnum,OrderType> _orderTypesList;
     OrderData _currentOrder;
     OrderList *_orderList;
     double _balance = 500.0;
@@ -83,7 +83,7 @@ private:
 
     // Widgets
     QPushButton *_resetChartButton;
-    QComboBox *_orderTypeComboBox;
+    SeriesBtnList *_seriesBtnList;
     QSlider *_amountRiskedSlider;
     QPushButton *_shortSetupButton;
     QPushButton *_longSetupButton;

@@ -39,19 +39,50 @@ ChartHandler::ChartHandler(QWidget *parent) : QChartView(parent)
 
     QPen pen(Qt::red);
     pen.setWidth(2);
-    serie(Utils::STOP_LOSS)->setPen(pen);
+    setSeriePen(Utils::SL, pen);
     pen.setColor(Qt::green);
-    serie(Utils::TAKE_PROFIT)->setPen(pen);
+    setSeriePen(Utils::TP1, pen);
+    pen.setColor(Qt::darkGreen);
+    setSeriePen(Utils::TP2, pen);
     pen.setColor(Qt::black);
-    serie(Utils::TRIGGER)->setPen(pen);
+    setSeriePen(Utils::TRIGGER, pen);
     pen.setColor(Qt::blue);
-    serie(Utils::ENTRY)->setPen(pen);
+    setSeriePen(Utils::ENTRY, pen);
     pen.setStyle(Qt::DashLine);
-    serie(Utils::REAL_ENTRY)->setPen(pen);
+    setSeriePen(Utils::REAL_ENTRY, pen);
     setSerieMovable(Utils::REAL_ENTRY, false);
 
     setChart(_chart);
     setRenderHint(QPainter::Antialiasing);
+}
+
+void ChartHandler::setSeriePen(Utils::SeriesEnum name, QPen pen)
+{
+    if(name == Utils::lineSeriesEnd) return;
+    auto it = _seriesList.find(name);
+    if(it != _seriesList.end()){
+        it->second.first->setPen(pen);
+    }
+}
+
+void ChartHandler::clearSerie(Utils::SeriesEnum name)
+{
+    if(name == Utils::lineSeriesEnd) return;
+    auto it = _seriesList.find(name);
+    if(it != _seriesList.end()){
+        it->second.first->clear();
+    }
+}
+
+double ChartHandler::seriePrice(Utils::SeriesEnum name)
+{
+    if(name == Utils::lineSeriesEnd) return 0;
+    auto it = _seriesList.find(name);
+    if(it != _seriesList.end()){
+        if(it->second.first->pointsVector().isEmpty()) return 0;
+        return it->second.first->pointsVector().first().y();
+    }
+    else return 0;
 }
 
 void ChartHandler::initializeKlines(QJsonArray &array)

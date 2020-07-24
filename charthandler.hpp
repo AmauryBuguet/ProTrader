@@ -10,12 +10,49 @@
 // Projets includes
 #include "globals.hpp"
 
+
+class SeriesBtnList : public QWidget
+{
+    Q_OBJECT
+public:
+    SeriesBtnList(QWidget *parent = nullptr) : QWidget(parent)
+    {
+        QGridLayout *layout = new QGridLayout(this);
+        for(uint i=0; i< Utils::REAL_ENTRY; i++){
+            QPushButton *newButton = new QPushButton(Utils::serieEnumToString(Utils::SeriesEnum(i)), this);
+            newButton->setCheckable(true);
+            _buttonsMap.insert({Utils::SeriesEnum(i),newButton});
+            layout->addWidget(newButton, i < 3 ? 0 : 1, i < 3 ? i : i-3);
+            connect(newButton, &QPushButton::toggled, [this, i](bool checked){ if (checked) emit buttonChecked(Utils::SeriesEnum(i)); else emit buttonUnchecked(Utils::SeriesEnum(i)); });
+        }
+
+        QPushButton *newButton = new QPushButton("CLEAR", this);
+        layout->addWidget(newButton, 1, 2);
+        connect(newButton, &QPushButton::clicked, this, &SeriesBtnList::uncheckAll);
+    }
+    void uncheckAll(){
+        for(auto btn : _buttonsMap){
+            if(btn.second->isChecked()) btn.second->toggle();
+        }
+    }
+
+signals:
+    void buttonChecked(Utils::SeriesEnum);
+    void buttonUnchecked(Utils::SeriesEnum);
+
+private:
+    std::map<Utils::SeriesEnum,QPushButton*> _buttonsMap;
+};
+
 class ChartHandler : public QChartView
 {
     Q_OBJECT
 public:
     ChartHandler(QWidget *parent = nullptr);
     QLineSeries* serie(Utils::SeriesEnum name);
+    void setSeriePen(Utils::SeriesEnum name, QPen pen);
+    void clearSerie(Utils::SeriesEnum name);
+    double seriePrice(Utils::SeriesEnum name);
     void setSeriePrice(Utils::SeriesEnum name, double price);
     void setSerieMovable(Utils::SeriesEnum name, bool movable);
     QCandlestickSeries* candles();

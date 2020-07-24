@@ -10,7 +10,8 @@
 #include "globals.hpp"
 
 struct OrderData {
-    QString side;
+    Utils::OrderTypesEnum type;
+    Utils::SidesEnum side;
     QString volume;
     QString price;
     QString trigger;
@@ -36,7 +37,7 @@ public:
     void getBalance();
     void getLastCandles();
     void getOpenOrders();
-    void createOrder(QString orderType, OrderData orderData);
+    void createOrder(OrderData orderData);
     void placeSL(QString inverseSide, QString stopPrice);
     void placeTP(QString inverseSide, QString qty, QString price);
     void marketClosePosition(QString volume, Utils::SidesEnum side);

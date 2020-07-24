@@ -11,12 +11,23 @@ class Utils : public QObject
 {
     Q_OBJECT
 public:
-    enum SeriesEnum {
-        STOP_LOSS = 0,
+    enum OrderTypesEnum {
+        LIMIT = 0,
+        MARKET,
+        STOP,
+        STOP_MARKET,
         TAKE_PROFIT,
+        Other
+    };
+    Q_ENUM(OrderTypesEnum)
+
+    enum SeriesEnum {
+        SL = 0,
         ENTRY,
-        REAL_ENTRY,
         TRIGGER,
+        TP1,
+        TP2,
+        REAL_ENTRY,
         lineSeriesEnd
     };
     Q_ENUM(SeriesEnum)
@@ -28,17 +39,31 @@ public:
     };
     Q_ENUM(SidesEnum)
 
+    static QString orderTypeEnumToString(OrderTypesEnum type){
+        return QVariant::fromValue(type).toString();
+    }
+    static OrderTypesEnum stringToOrderTypeEnum(QString type){
+        if(type == "LIMIT") return LIMIT;
+        else if(type == "MARKET") return MARKET;
+        else if(type == "STOP") return STOP;
+        else if(type == "STOP_MARKET") return STOP_MARKET;
+        else return Other;
+
+    }
+
     static SeriesEnum stringToSerieEnum(QString serie){
-        if(serie == "STOP_LOSS") return STOP_LOSS;
-        else if(serie == "TAKE_PROFIT") return TAKE_PROFIT;
+        if(serie == "SL") return SL;
+        else if(serie == "TP1") return TP1;
+        else if(serie == "TP2") return TP2;
         else if(serie == "ENTRY") return ENTRY;
         else if(serie == "REAL_ENTRY") return REAL_ENTRY;
         else if(serie == "TRIGGER") return TRIGGER;
         else return lineSeriesEnd;
     }
     static QString serieEnumToString(SeriesEnum serie){
-        if(serie == STOP_LOSS) return "STOP_LOSS";
-        else if(serie == TAKE_PROFIT) return "TAKE_PROFIT";
+        if(serie == SL) return "SL";
+        else if(serie == TP1) return "TP1";
+        else if(serie == TP2) return "TP2";
         else if(serie == ENTRY) return "ENTRY";
         else if(serie == REAL_ENTRY) return "REAL_ENTRY";
         else if(serie == TRIGGER) return "TRIGGER";

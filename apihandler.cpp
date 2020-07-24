@@ -124,29 +124,20 @@ void ApiHandler::getOpenOrders()
     getRequest("/fapi/v1/openOrders","symbol=" + PAIR.toLower().toUtf8(), true);
 }
 
-void ApiHandler::createOrder(QString orderType, OrderData orderData)
+void ApiHandler::createOrder(OrderData orderData)
 {
     QByteArray data;
     data.append("symbol=" + PAIR);
-    data.append("&side=" + orderData.side);
-    if (orderType == "limit"){
+    data.append("&side=" + Utils::sideEnumToString(orderData.side));
+    data.append("&type=" + Utils::orderTypeEnumToString(orderData.type));
+    if (orderData.type == Utils::LIMIT){
         data.append("&timeInForce=GTC");
-        data.append("&type=LIMIT");
-    }
-    else if (orderType == "market"){
-        data.append("&type=MARKET");
-    }
-    else if (orderType == "trigger market"){
-        data.append("&type=STOP_MARKET");
-    }
-    else if (orderType == "trigger limit"){
-        data.append("&type=STOP");
     }
     data.append("&quantity=" + orderData.volume);
-    if (orderType.contains("limit")){
+    if (orderData.type == Utils::LIMIT || orderData.type == Utils::STOP){
         data.append("&price=" + orderData.price);
     }
-    if (orderType.contains("trigger")){
+    if (Utils::orderTypeEnumToString(orderData.type).contains("STOP")){
         data.append("&stopPrice=" + orderData.trigger);
     }
     data.append("&newOrderRespType=RESULT");
@@ -165,7 +156,7 @@ void ApiHandler::placeSL(QString inverseSide, QString stopPrice)
     data.append("&stopPrice=" + stopPrice);
     data.append("&recvWindow=3000");
     data.append("&newOrderRespType=RESULT");
-    data.append("&newClientOrderId=" + Utils::serieEnumToString(Utils::STOP_LOSS));
+    data.append("&newClientOrderId=" + Utils::serieEnumToString(Utils::SL));
     postRequest("/fapi/v1/order", data);
 }
 
@@ -195,7 +186,7 @@ void ApiHandler::placeTP(QString inverseSide, QString qty, QString price)
     data.append("&reduceOnly=true");
     data.append("&recvWindow=3000");
     data.append("&newOrderRespType=RESULT");
-    data.append("&newClientOrderId=" + Utils::serieEnumToString(Utils::TAKE_PROFIT));
+    data.append("&newClientOrderId=" + Utils::serieEnumToString(Utils::TP1));
     postRequest("/fapi/v1/order", data);
 }
 
