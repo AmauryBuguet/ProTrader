@@ -16,6 +16,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     orderhandler.cpp \
+    statswindow.cpp \
     wshandler.cpp
 
 HEADERS += \
@@ -24,6 +25,7 @@ HEADERS += \
     globals.hpp \
     mainwindow.hpp \
     orderhandler.hpp \
+    statswindow.hpp \
     wshandler.hpp
 
 # Default rules for deployment.

@@ -1,6 +1,7 @@
 #include <QSignalSpy>
 
 #include "mainwindow.hpp"
+#include "statswindow.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), _wsHandler(this)
@@ -21,14 +22,14 @@ MainWindow::MainWindow(QWidget *parent)
     _resetChartButton = new QPushButton("reset",this);
 
     _balanceLabel = new QLabel("Balance : -- USDT", this);
-    _overallStatsLabel = new QLabel("OVERALL STATS", this);
-    _dailyStatsLabel = new QLabel("DAILY STATS", this);
+    _overallStatsLabel = new QLabel(this);
+    _dailyStatsLabel = new QLabel(this);
     _amountRiskedSlider = new QSlider(Qt::Horizontal, this);
     _amountRiskedSlider->setRange(0, 200);
     _amountRiskedSlider->setValue(50);
     _estimationLabel = new QLabel(this);
     _estimationLabel->setMinimumSize(250, 320);
-    _estimationLabel->setMaximumSize(350, 320);
+    _estimationLabel->setMaximumSize(350, 375);
     _estimationLabel->setFont(QFont("Arial", 12));
     _estimationLabel->setStyleSheet("QLabel { background-color : black; color : LawnGreen; }");
     _shortSetupButton = new QPushButton("SHORT", this);
@@ -39,17 +40,21 @@ MainWindow::MainWindow(QWidget *parent)
     _placeOrderButton->setMinimumSize(160, 120);
     _placeOrderButton->setMaximumSize(350, 200);
     _placeOrderButton->setEnabled(false);
+    _dailyStatsButton = new QPushButton("DAILY STATS", this);
+    _overallStatsButton = new QPushButton("OVERALL STATS", this);
 
     QGridLayout *setupLayout = new QGridLayout();
     setupLayout->addWidget(_balanceLabel, 0, 0, 1, 2);
-    setupLayout->addWidget(_overallStatsLabel, 1, 0);
-    setupLayout->addWidget(_dailyStatsLabel, 1, 1);
-    setupLayout->addWidget(_seriesBtnList, 2, 0, 1, 2);
-    setupLayout->addWidget(_amountRiskedSlider, 3, 0, 1, 2);
-    setupLayout->addWidget(_shortSetupButton, 4, 0);
-    setupLayout->addWidget(_longSetupButton, 4, 1);
-    setupLayout->addWidget(_estimationLabel, 5, 0, 1, 2);
-    setupLayout->addWidget(_placeOrderButton, 6, 0, 1, 2);
+    setupLayout->addWidget(_overallStatsButton, 1, 0);
+    setupLayout->addWidget(_dailyStatsButton, 1, 1);
+    setupLayout->addWidget(_overallStatsLabel, 2, 0);
+    setupLayout->addWidget(_dailyStatsLabel, 2, 1);
+    setupLayout->addWidget(_seriesBtnList, 3, 0, 1, 2);
+    setupLayout->addWidget(_amountRiskedSlider, 4, 0, 1, 2);
+    setupLayout->addWidget(_shortSetupButton, 5, 0);
+    setupLayout->addWidget(_longSetupButton, 5, 1);
+    setupLayout->addWidget(_estimationLabel, 6, 0, 1, 2);
+    setupLayout->addWidget(_placeOrderButton, 7, 0, 1, 2);
     setupLayout->setSpacing(20);
 
     _mainLayout = new QGridLayout();
@@ -88,6 +93,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_longSetupButton, &QPushButton::clicked, this, &MainWindow::quickLongSetup);
     connect(_resetChartButton, &QPushButton::clicked, _chartHandler, &ChartHandler::reset);
     connect(_placeOrderButton, &QPushButton::clicked, this, &MainWindow::handlePlaceOrder);
+    connect(_overallStatsButton, &QPushButton::clicked, [this](){ openStatsChart(); });
+    connect(_dailyStatsButton, &QPushButton::clicked, [this](){ openStatsChart(true); });
 
     fillStats();
     getApiKeys();
@@ -425,6 +432,30 @@ void MainWindow::getApiKeys()
     else qDebug() << "API keys set";
 }
 
+void MainWindow::openStatsChart(bool daily)
+{
+    QJsonArray balanceHistory = getBalanceHistory();
+
+    QString previousBalance = "";
+    if(daily){
+        foreach(const QJsonValue &val, balanceHistory){
+            QJsonObject obj = val.toObject();
+            if(obj["timestamp"].toString().toDouble() > QDateTime::currentDateTime().addDays(-1).toMSecsSinceEpoch()){
+                QJsonObject item;
+                item.insert("timestamp", QString::number(obj["timestamp"].toString().toDouble()-3600000));
+                item.insert("balance", previousBalance);
+                balanceHistory.prepend(item);
+                break;
+            }
+            previousBalance = obj["balance"].toString();
+            balanceHistory.removeFirst();
+        }
+    }
+
+    StatsWindow *stats = new StatsWindow(balanceHistory);
+    stats->show();
+}
+
 QJsonArray MainWindow::getBalanceHistory(bool remove)
 {
     QFile logFile(QApplication::applicationDirPath() + "/balanceHistory.json");
@@ -484,7 +515,7 @@ void MainWindow::fillStats()
         previousBalance = obj["balance"].toString().toDouble();
     }
 
-    QString textStats = "OVERALL STATS\n\n";
+    QString textStats = "\n";
     textStats.append("Wins : " + QString::number(nbWin) + "\n");
     textStats.append("Losses : " + QString::number(nbLoss) + "\n");
     textStats.append("Breakevens : " + QString::number(nbEven) + "\n");
@@ -494,7 +525,7 @@ void MainWindow::fillStats()
     _overallStatsLabel->setPalette(pal);
     _overallStatsLabel->setText(textStats);
 
-    QString textDailyStats = "DAILY STATS\n\n";
+    QString textDailyStats = "\n";
     textDailyStats.append("Wins : " + QString::number(nbWinOfTheDay) + "\n");
     textDailyStats.append("Losses : " + QString::number(nbLossOfTheDay) + "\n");
     textDailyStats.append("Breakevens : " + QString::number(nbEvenOfTheDay) + "\n");

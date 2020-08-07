@@ -59,6 +59,7 @@ public:
     QJsonArray getBalanceHistory(bool remove = false);
     void updateBalanceHistory(qint64 timestamp, double newBalance);
     void fillStats();
+    void openStatsChart(bool daily = false);
 
 signals:
     void slCanceled(QString side);
@@ -88,6 +89,8 @@ private:
     QPushButton *_shortSetupButton;
     QPushButton *_longSetupButton;
     QPushButton *_placeOrderButton;
+    QPushButton *_overallStatsButton;
+    QPushButton *_dailyStatsButton;
     QLabel *_estimationLabel;
     QLabel *_balanceLabel;
     QLabel *_dailyStatsLabel;
