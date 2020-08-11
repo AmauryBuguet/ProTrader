@@ -144,7 +144,6 @@ protected:
 
     void keyPressEvent(QKeyEvent  *event) override
     {
-        qDebug() << "key pressed";
         if(_clickedSerie != Utils::lineSeriesEnd){
             if(event->key() == Qt::Key_A)
             {
