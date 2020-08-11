@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent)
     _chartHandler->setMinimumSize(640, 420);
     _resetChartButton = new QPushButton("reset",this);
 
+    _5mButton = new QPushButton("5m", this);
+    _1mButton = new QPushButton("1m", this);
+
     _balanceLabel = new QLabel("Balance : -- USDT", this);
     _overallStatsLabel = new QLabel(this);
     _dailyStatsLabel = new QLabel(this);
@@ -57,11 +60,16 @@ MainWindow::MainWindow(QWidget *parent)
     setupLayout->addWidget(_placeOrderButton, 7, 0, 1, 2);
     setupLayout->setSpacing(20);
 
+    QHBoxLayout *timeFramesLayout = new QHBoxLayout();
+    timeFramesLayout->addWidget(_1mButton);
+    timeFramesLayout->addWidget(_5mButton);
+
     _mainLayout = new QGridLayout();
     _mainLayout->setColumnStretch(0,3);
     _mainLayout->setColumnStretch(1,1);
     _mainLayout->addWidget(_chartHandler, 0, 0);
     _mainLayout->addWidget(_resetChartButton, 0, 0, Qt::AlignRight | Qt::AlignBottom);
+    _mainLayout->addLayout(timeFramesLayout, 0, 0, Qt::AlignLeft | Qt::AlignTop);
     _mainLayout->addLayout(setupLayout, 0, 1);
     _mainLayout->addWidget(_orderList, 1, 0, 1, 2);
     _mainLayout->setSpacing(20);
@@ -96,12 +104,27 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_overallStatsButton, &QPushButton::clicked, [this](){ openStatsChart(); });
     connect(_dailyStatsButton, &QPushButton::clicked, [this](){ openStatsChart(true); });
 
+    connect(_1mButton, &QPushButton::clicked, [this](){ changeInterval("1m"); });
+    connect(_5mButton, &QPushButton::clicked, [this](){ changeInterval("5m"); });
+
     fillStats();
     getApiKeys();
     _binance.getBalance();
     _binance.getLastCandles();
     _binance.createListenKey();
     _binance.getOpenOrders();
+}
+
+void MainWindow::changeInterval(QString newInterval)
+{
+    _estimationEnabled = false;
+    _wsHandler.unsubscribe();
+    _binance.deleteListenKey();
+    INTERVAL = newInterval;
+    _chartHandler->candles()->clear();
+    _binance.getLastCandles();
+    _binance.createListenKey();
+    QTimer::singleShot(1000, [this](){_estimationEnabled = true;});
 }
 
 void MainWindow::setBalance(double value)

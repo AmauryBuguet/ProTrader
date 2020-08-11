@@ -60,6 +60,7 @@ public:
     void updateBalanceHistory(qint64 timestamp, double newBalance);
     void fillStats();
     void openStatsChart(bool daily = false);
+    void changeInterval(QString newInterval);
 
 signals:
     void slCanceled(QString side);
@@ -84,6 +85,8 @@ private:
 
     // Widgets
     QPushButton *_resetChartButton;
+    QPushButton *_5mButton;
+    QPushButton *_1mButton;
     SeriesBtnList *_seriesBtnList;
     QSlider *_amountRiskedSlider;
     QPushButton *_shortSetupButton;
@@ -96,5 +99,26 @@ private:
     QLabel *_dailyStatsLabel;
     QLabel *_overallStatsLabel;
     QGridLayout *_mainLayout;
+
+protected:
+    void keyPressEvent(QKeyEvent  *event) Q_DECL_OVERRIDE
+    {
+        if(event->key() == Qt::Key_S)
+        {
+            _seriesBtnList->checkButton(Utils::SL);
+        }
+        else if(event->key() == Qt::Key_E)
+        {
+            _seriesBtnList->checkButton(Utils::ENTRY);
+        }
+        else if(event->key() == Qt::Key_T)
+        {
+            _seriesBtnList->checkButton(Utils::TP1);
+        }
+        else if(event->key() == Qt::Key_R)
+        {
+            _seriesBtnList->checkButton(Utils::TRIGGER);
+        }
+    }
 };
 #endif // MAINWINDOW_HPP

@@ -36,6 +36,16 @@ public:
         }
     }
 
+public slots:
+    void checkButton(Utils::SeriesEnum serie){
+        auto it = _buttonsMap.find(serie);
+        if (it != _buttonsMap.end()){
+            it->second->setChecked(!it->second->isChecked());
+            qDebug() << "setting button check state";
+//            it->second->setChecked(true);
+        }
+    }
+
 signals:
     void buttonChecked(Utils::SeriesEnum);
     void buttonUnchecked(Utils::SeriesEnum);
@@ -130,6 +140,22 @@ protected:
             event->accept();
             setYAxisRange();
         }
+    }
+
+    void keyPressEvent(QKeyEvent  *event) override
+    {
+        qDebug() << "key pressed";
+        if(_clickedSerie != Utils::lineSeriesEnd){
+            if(event->key() == Qt::Key_A)
+            {
+                setSeriePrice(_clickedSerie, seriePrice(_clickedSerie) + 1.0/(pow(10, _precision)));
+            }
+            else if(event->key() == Qt::Key_Q)
+            {
+                setSeriePrice(_clickedSerie, seriePrice(_clickedSerie) - 1.0/(pow(10, _precision)));
+            }
+        }
+        QChartView::keyPressEvent(event);
     }
 };
 

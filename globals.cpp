@@ -3,6 +3,7 @@
 #include "globals.hpp"
 
 QString PAIR = "XTZUSDT";
+QString INTERVAL = "5m";
 QString API_KEY = "key";
 QString API_SECRET = "secret";
 QString ENDPOINT = "https://fapi.binance.com";

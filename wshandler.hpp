@@ -15,6 +15,7 @@ public:
     void onMsgReceived(QString message);
     double getBid();
     double getAsk();
+    void unsubscribe();
 
 signals:
     void receivedKline(QJsonObject &kline);

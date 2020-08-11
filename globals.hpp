@@ -102,6 +102,7 @@ public:
 };
 
 extern QString PAIR;
+extern QString INTERVAL;
 extern QString API_KEY;
 extern QString API_SECRET;
 extern QString ENDPOINT;

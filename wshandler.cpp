@@ -15,8 +15,23 @@ bool WsHandler::setup(QString listenKey)
 {
     qDebug() << "Connecting to binance websocket ...";
     connect(&_webSocket, &QWebSocket::connected, this, &WsHandler::onWsConnected);
-    _webSocket.open(QUrl("wss://fstream.binance.com/stream?streams=" + PAIR.toLower() + "@kline_5m/" + listenKey + "/" + PAIR.toLower() + "@bookTicker"));
+    _webSocket.open(QUrl("wss://fstream.binance.com/stream?streams=" + PAIR.toLower() + "@kline_" + INTERVAL + "/" + listenKey + "/" + PAIR.toLower() + "@bookTicker"));
     return true;
+}
+
+void WsHandler::unsubscribe()
+{
+    disconnect(&_webSocket, &QWebSocket::connected, this, &WsHandler::onWsConnected);
+    disconnect(&_webSocket, &QWebSocket::textMessageReceived, this, &WsHandler::onMsgReceived);
+    QJsonObject unsubObj;
+    unsubObj.insert("method", "UNSUBSCRIBE");
+    QJsonArray params;
+    params.append(PAIR.toLower() + "@kline_" + INTERVAL);
+    params.append(LISTENKEY);
+    params.append(PAIR.toLower() + "@bookTicker");
+    unsubObj.insert("params", params);
+    unsubObj.insert("id", ++CURRENT_SUBSCRIBE_ID);
+    _webSocket.sendTextMessage(QJsonDocument(unsubObj).toJson());
 }
 
 double WsHandler::getBid()
@@ -53,7 +68,7 @@ void WsHandler::onMsgReceived(QString message)
         }
         if (changed) emit bidaskChanged();
     }
-    else if(object["stream"] == PAIR.toLower() + "@kline_5m"){
+    else if(object["stream"] == PAIR.toLower() + "@kline_" + INTERVAL){
         QJsonObject kline = object["data"].toObject()["k"].toObject();
         emit receivedKline(kline);
     }

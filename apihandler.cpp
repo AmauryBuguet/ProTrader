@@ -116,7 +116,7 @@ void ApiHandler::getBalance()
 
 void ApiHandler::getLastCandles()
 {
-    getRequest("/fapi/v1/klines","symbol=" + PAIR.toLower().toUtf8() + "&interval=5m&limit=500");
+    getRequest("/fapi/v1/klines","symbol=" + PAIR.toLower().toUtf8() + "&interval=" + INTERVAL.toUtf8() + "&limit=500");
 }
 
 void ApiHandler::getOpenOrders()
@@ -223,10 +223,10 @@ void ApiHandler::pingListenKey()
     pushRequest(request);
 }
 
-void ApiHandler::deleteListenKey(QString key)
+void ApiHandler::deleteListenKey()
 {
     QByteArray data;
-    data.append("listenKey=" + key);
+    data.append("listenKey=" + LISTENKEY);
     deleteRequest("/fapi/v1/listenKey", data, false);
 }
 

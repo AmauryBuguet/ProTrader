@@ -44,7 +44,7 @@ public:
     void cancelOrder(QString name);
     void createListenKey();
     void pingListenKey();
-    void deleteListenKey(QString key);
+    void deleteListenKey();
     void getRequest(QByteArray url, QByteArray data, bool priv = false);
     void postRequest(QByteArray url, QByteArray data, bool timestampNeeded = true);
     void deleteRequest(QByteArray url, QByteArray data, bool timestampNeeded);
