@@ -41,8 +41,6 @@ public slots:
         auto it = _buttonsMap.find(serie);
         if (it != _buttonsMap.end()){
             it->second->setChecked(!it->second->isChecked());
-            qDebug() << "setting button check state";
-//            it->second->setChecked(true);
         }
     }
 

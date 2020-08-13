@@ -21,17 +21,26 @@ bool WsHandler::setup(QString listenKey)
 
 void WsHandler::unsubscribe()
 {
-    disconnect(&_webSocket, &QWebSocket::connected, this, &WsHandler::onWsConnected);
-    disconnect(&_webSocket, &QWebSocket::textMessageReceived, this, &WsHandler::onMsgReceived);
     QJsonObject unsubObj;
     unsubObj.insert("method", "UNSUBSCRIBE");
     QJsonArray params;
     params.append(PAIR.toLower() + "@kline_" + INTERVAL);
-    params.append(LISTENKEY);
     params.append(PAIR.toLower() + "@bookTicker");
     unsubObj.insert("params", params);
     unsubObj.insert("id", ++CURRENT_SUBSCRIBE_ID);
     _webSocket.sendTextMessage(QJsonDocument(unsubObj).toJson());
+}
+
+void WsHandler::subscribe()
+{
+    QJsonObject subObj;
+    subObj.insert("method", "SUBSCRIBE");
+    QJsonArray params;
+    params.append(PAIR.toLower() + "@kline_" + INTERVAL);
+    params.append(PAIR.toLower() + "@bookTicker");
+    subObj.insert("params", params);
+    subObj.insert("id", ++CURRENT_SUBSCRIBE_ID);
+    _webSocket.sendTextMessage(QJsonDocument(subObj).toJson());
 }
 
 double WsHandler::getBid()

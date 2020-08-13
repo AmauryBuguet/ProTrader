@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     _dailyStatsLabel = new QLabel(this);
     _amountRiskedSlider = new QSlider(Qt::Horizontal, this);
     _amountRiskedSlider->setRange(0, 200);
-    _amountRiskedSlider->setValue(50);
+    _amountRiskedSlider->setValue(100);
     _estimationLabel = new QLabel(this);
     _estimationLabel->setMinimumSize(250, 320);
     _estimationLabel->setMaximumSize(350, 375);
@@ -119,11 +119,12 @@ void MainWindow::changeInterval(QString newInterval)
 {
     _estimationEnabled = false;
     _wsHandler.unsubscribe();
-    _binance.deleteListenKey();
     INTERVAL = newInterval;
     _chartHandler->candles()->clear();
+    QSignalSpy spy(&_binance, &ApiHandler::initialKlineArrayReady);
     _binance.getLastCandles();
-    _binance.createListenKey();
+    spy.wait(3000);
+    _wsHandler.subscribe();
     QTimer::singleShot(1000, [this](){_estimationEnabled = true;});
 }
 
@@ -290,6 +291,7 @@ void MainWindow::fillPositionEstimate()
 {
     if(!_estimationEnabled) return;
     if(_position != nullptr){
+        if(!_placeOrderButton->isEnabled()) _placeOrderButton->setEnabled(true);
         Utils::SidesEnum side = _position->side();
         double pnl = 0;
         if(_chartHandler->serie(Utils::REAL_ENTRY)->pointsVector().isEmpty()) return;

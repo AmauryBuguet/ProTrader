@@ -16,6 +16,7 @@ public:
     double getBid();
     double getAsk();
     void unsubscribe();
+    void subscribe();
 
 signals:
     void receivedKline(QJsonObject &kline);
