@@ -16,7 +16,7 @@ IMPORTANT : you need a text file named "keys.ini" in the location specified by t
 * Support LIMIT, STOP, STOP_MARKET and MARKET orders
 
 #### Will be added
-* Possibility to trade other cryptos than XTZ
+* ~~Possibility to trade other cryptos than XTZ~~
 * ~~Possibility to trade on other timeframes than 5 min~~
 * ~~Keyboard shortcuts~~
 * Possibility to have multiple SL/TP

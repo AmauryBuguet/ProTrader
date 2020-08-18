@@ -111,4 +111,7 @@ extern QString LISTENKEY;
 extern int CURRENT_SUBSCRIBE_ID;
 extern int CURRENT_ORDER_ID;
 
+extern int VOLUME_PRECISION;
+extern int PRICE_PRECISION;
+
 #endif // GLOBALS_HPP

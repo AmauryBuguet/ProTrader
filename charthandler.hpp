@@ -64,7 +64,7 @@ public:
     void setSeriePrice(Utils::SeriesEnum name, double price);
     void setSerieMovable(Utils::SeriesEnum name, bool movable);
     QCandlestickSeries* candles();
-    int precision() { return _precision; }
+    void updatePair();
 
 signals:
     void lineMoved();
@@ -78,7 +78,6 @@ public slots:
 private:
     double _x_pos = 0;
     double _Ymultiplier = 0.001;
-    int _precision = 3;
     QChart *_chart;
     QCandlestickSeries *_priceSeries;
     QValueAxis *_priceAxis;
@@ -113,7 +112,7 @@ protected:
                 auto const widgetPos = event->localPos();
                 auto const scenePos = mapToScene(QPoint(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y())));
                 auto const coord = chart()->mapToValue(chart()->mapFromScene(scenePos));
-                QString coordTrunc = QString::number(coord.y(), 'f', _precision);
+                QString coordTrunc = QString::number(coord.y(), 'f', PRICE_PRECISION);
                 setSeriePrice(_clickedSerie, coordTrunc.toDouble());
                 emit lineMoved();
             }
@@ -145,11 +144,11 @@ protected:
         if(_clickedSerie != Utils::lineSeriesEnd){
             if(event->key() == Qt::Key_A)
             {
-                setSeriePrice(_clickedSerie, seriePrice(_clickedSerie) + 1.0/(pow(10, _precision)));
+                setSeriePrice(_clickedSerie, seriePrice(_clickedSerie) + 1.0/(pow(10, PRICE_PRECISION)));
             }
             else if(event->key() == Qt::Key_Q)
             {
-                setSeriePrice(_clickedSerie, seriePrice(_clickedSerie) - 1.0/(pow(10, _precision)));
+                setSeriePrice(_clickedSerie, seriePrice(_clickedSerie) - 1.0/(pow(10, PRICE_PRECISION)));
             }
         }
         QChartView::keyPressEvent(event);

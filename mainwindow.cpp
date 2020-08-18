@@ -6,6 +6,19 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), _wsHandler(this)
 {
+    _pairsList.insert({"XTZUSDT",{1,3}});
+    _pairsList.insert({"BTCUSDT",{3,2}});
+    _pairsList.insert({"ETHUSDT",{3,2}});
+    _pairsList.insert({"LTCUSDT",{3,2}});
+    _pairsList.insert({"EOSUSDT",{1,3}});
+    _pairsList.insert({"XRPUSDT",{1,4}});
+
+    _pairChoice = new QComboBox(this);
+    for(auto item : _pairsList){
+        _pairChoice->addItem(item.first);
+    }
+    _pairChoice->setCurrentText("XTZUSDT");
+
     _orderList = new OrderList(this);
     _orderList->show();
 
@@ -69,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
     _mainLayout->setColumnStretch(1,1);
     _mainLayout->addWidget(_chartHandler, 0, 0);
     _mainLayout->addWidget(_resetChartButton, 0, 0, Qt::AlignRight | Qt::AlignBottom);
+    _mainLayout->addWidget(_pairChoice, 0, 0, Qt::AlignRight | Qt::AlignTop);
     _mainLayout->addLayout(timeFramesLayout, 0, 0, Qt::AlignLeft | Qt::AlignTop);
     _mainLayout->addLayout(setupLayout, 0, 1);
     _mainLayout->addWidget(_orderList, 1, 0, 1, 2);
@@ -84,7 +98,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&_binance, &ApiHandler::balanceReady, this, &MainWindow::setBalance);
 
     connect(&_wsHandler, &WsHandler::receivedKline, _chartHandler, &ChartHandler::handleKline);
-    connect(&_wsHandler, &WsHandler::bidaskChanged, this, &MainWindow::fillPositionEstimate);
+    connect(&_wsHandler, &WsHandler::receivedKline, this, &MainWindow::fillPositionEstimate);
+//    connect(&_wsHandler, &WsHandler::bidaskChanged, this, &MainWindow::fillPositionEstimate);
     connect(&_wsHandler, &WsHandler::orderUpdate, this, &MainWindow::handleOrderUpdate);
     connect(&_wsHandler, &WsHandler::accountUpdate, this, &MainWindow::setBalance);
 
@@ -107,12 +122,34 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_1mButton, &QPushButton::clicked, [this](){ changeInterval("1m"); });
     connect(_5mButton, &QPushButton::clicked, [this](){ changeInterval("5m"); });
 
+    connect(_pairChoice, &QComboBox::currentTextChanged, this, &MainWindow::changePair);
+
     fillStats();
     getApiKeys();
     _binance.getBalance();
     _binance.getLastCandles();
     _binance.createListenKey();
     _binance.getOpenOrders();
+}
+
+void MainWindow::changePair(QString pair)
+{
+    _seriesBtnList->uncheckAll();
+    _estimationEnabled = false;
+    _wsHandler.unsubscribe();
+    PAIR = pair;
+    auto it = _pairsList.find(pair);
+    if(it != _pairsList.end()){
+        VOLUME_PRECISION = it->second.first;
+        PRICE_PRECISION = it->second.second;
+    }
+    _chartHandler->candles()->clear();
+    _chartHandler->updatePair();
+    QSignalSpy spy(&_binance, &ApiHandler::initialKlineArrayReady);
+    _binance.getLastCandles();
+    spy.wait(3000);
+    _wsHandler.subscribe();
+    QTimer::singleShot(1000, [this](){_estimationEnabled = true;});
 }
 
 void MainWindow::changeInterval(QString newInterval)
@@ -164,10 +201,10 @@ void MainWindow::handleOrderUpdate(QJsonObject &order)
             _position = new Position(Utils::stringToOrderTypeEnum(order["o"].toString()), order["z"].toString(), Utils::stringtoSideEnum(order["S"].toString()));
             _chartHandler->serie(Utils::ENTRY)->clear();
 
-            _binance.placeSL(Utils::inverseSideString(order["S"].toString()), QString::number(_chartHandler->serie(Utils::SL)->pointsVector().first().y(), 'f', _chartHandler->precision()));
+            _binance.placeSL(Utils::inverseSideString(order["S"].toString()), QString::number(_chartHandler->serie(Utils::SL)->pointsVector().first().y(), 'f', PRICE_PRECISION));
 
             if(_chartHandler->seriePrice(Utils::TP1) != 0){
-                _binance.placeTP(Utils::inverseSideString(order["S"].toString()), order["z"].toString(), QString::number(_chartHandler->serie(Utils::TP1)->pointsVector().first().y(), 'f', _chartHandler->precision()));
+                _binance.placeTP(Utils::inverseSideString(order["S"].toString()), order["z"].toString(), QString::number(_chartHandler->serie(Utils::TP1)->pointsVector().first().y(), 'f', PRICE_PRECISION));
             }
         }
         else {
@@ -331,7 +368,7 @@ void MainWindow::fillPositionEstimate()
         text.append(" PnL : " + QString::number(pnl) + "\n");
         text.append(" Risk : " + QString::number(risk) + "\n");
         text.append(" Reward : " + (tp ? QString::number(reward) : "--") + "\n");
-        text.append(" Volume : " + _position->volume() + " XTZ\n");
+        text.append(" Volume : " + _position->volume() + " " + PAIR.left(3) + "\n");
         text.append(" Entry : " + QString::number(entry) + "\n");
         text.append(" SL : " + QString::number(sl) + "\n");
         text.append(" TP : " + (tp ? QString::number(tp) : "--") + "\n");
@@ -398,15 +435,15 @@ void MainWindow::fillPositionEstimate()
             ratioString = QString::number(reward/risk);
         }
 
-        volumeXTZString = QString::number(volume, 'f', 1);
-        entryString = QString::number(entry, 'f', _chartHandler->precision());
-        slString = QString::number(stopLoss, 'f', _chartHandler->precision());
-        tpString = QString::number(takeProfit, 'f', _chartHandler->precision());
+        volumeXTZString = QString::number(volume, 'f', VOLUME_PRECISION);
+        entryString = QString::number(entry, 'f', PRICE_PRECISION);
+        slString = QString::number(stopLoss, 'f', PRICE_PRECISION);
+        tpString = QString::number(takeProfit, 'f', PRICE_PRECISION);
         _currentOrder.type = pair.first;
         _currentOrder.side = pair.second;
         _currentOrder.price = entryString;
         _currentOrder.volume = volumeXTZString;
-        if(!_chartHandler->serie(Utils::TRIGGER)->pointsVector().isEmpty()) _currentOrder.trigger = QString::number(_chartHandler->serie(Utils::TRIGGER)->pointsVector().first().y(), 'f', _chartHandler->precision());
+        if(!_chartHandler->serie(Utils::TRIGGER)->pointsVector().isEmpty()) _currentOrder.trigger = QString::number(_chartHandler->serie(Utils::TRIGGER)->pointsVector().first().y(), 'f', PRICE_PRECISION);
     }
     QString text = "        Position Estimation\n\n";
     text.append(" Type : " + Utils::orderTypeEnumToString(pair.first) + "\n");
@@ -414,7 +451,7 @@ void MainWindow::fillPositionEstimate()
     text.append(" Risk : " + QString::number(risk) + " USD\n");
     text.append(" Reward : " + rewardString + " USD\n");
     text.append(" Ratio : " + ratioString + "\n");
-    text.append(" Volume : " + volumeXTZString + " XTZ\n");
+    text.append(" Volume : " + volumeXTZString + " " + PAIR.left(3) + "\n");
     text.append(" Entry : " + entryString + "\n");
     text.append(" SL : " + slString + "\n");
     text.append(" TP : " + tpString + "\n");

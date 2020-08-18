@@ -56,6 +56,12 @@ ChartHandler::ChartHandler(QWidget *parent) : QChartView(parent)
     setRenderHint(QPainter::Antialiasing);
 }
 
+void ChartHandler::updatePair()
+{
+    _chart->setTitle(PAIR.left(3) + "/USDT");
+    _priceAxis->setLabelFormat("%." + QString::number(PRICE_PRECISION) + "f");
+}
+
 void ChartHandler::setSeriePen(Utils::SeriesEnum name, QPen pen)
 {
     if(name == Utils::lineSeriesEnd) return;

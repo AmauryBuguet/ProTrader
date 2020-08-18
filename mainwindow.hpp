@@ -61,6 +61,7 @@ public:
     void fillStats();
     void openStatsChart(bool daily = false);
     void changeInterval(QString newInterval);
+    void changePair(QString pair);
 
 signals:
     void slCanceled(QString side);
@@ -82,6 +83,7 @@ private:
     double _balance = 500.0;
     Position *_position = nullptr;
     bool _estimationEnabled = true;
+    std::map<QString,std::pair<int,int> > _pairsList;
 
     // Widgets
     QPushButton *_resetChartButton;
@@ -94,6 +96,7 @@ private:
     QPushButton *_placeOrderButton;
     QPushButton *_overallStatsButton;
     QPushButton *_dailyStatsButton;
+    QComboBox *_pairChoice;
     QLabel *_estimationLabel;
     QLabel *_balanceLabel;
     QLabel *_dailyStatsLabel;
