@@ -23,6 +23,8 @@ IMPORTANT : you need a text file named "keys.ini" in the location specified by t
 * Telegram bot to alert user when an order is filled
 
 #### Bugs
+* In periods of high trading activity, sometimes the program loses the websocket connection.
+* Crashes when you open the program and there are already existing orders / positions.
 * cant replace a TP order if the previous one has been canceled (advised to ALWAYS have a TP when placing an order and ONLY use the MODIFY button to edit it)
 * it is advised to have a Binance tab opened in case something goes wrong with this program, this is an open source software in developpement and i'm not responsible in case of any unexpected gains/losses due to a malfunction
 * trading is risky, always have a risk managment strategy :)
